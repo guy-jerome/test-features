@@ -1,0 +1,39 @@
+#Build Stage 
+FROM node:16-alpine as build-stage
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY src ./src
+COPY server ./server
+COPY . .
+RUN npm run build
+
+# Runtime Stage
+FROM node:16-alpine
+WORKDIR /app
+
+# Copy dependencies and server 
+COPY --from=build-stage /app/package*.json ./
+COPY --from=build-stage /app/server ./server
+RUN npm install
+
+# Copy production build
+COPY --from=build-stage /app/dist ./
+
+EXPOSE 3000 
+CMD ["npm","start"]
+
+
+# FROM node:16-alpine as build-stage
+# WORKDIR /app
+
+# COPY package*.json ./
+# RUN npm install
+
+# COPY . .
+
+# EXPOSE 3000
+
+# CMD ["npm","start"]
